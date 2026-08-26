@@ -1,6 +1,6 @@
 // CONFIGURATION SUPABASE
-const SUPABASE_URL = "https://zxkvodughaissxbkslac.supabase.co";
-const SUPABASE_ANON_KEY = "VOTRE_CLE_ANON_PUBLIC_ICI"; // ⚠️ Remplacez par votre clé anon public
+const SUPABASE_URL = "https://zxkvodughaissxbkslac.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "sb_publishable_oUMkJw7_dNN-TPyQe5YDwA_N43TJXr5; // ⚠️ Remplacez par votre clé anon public
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
