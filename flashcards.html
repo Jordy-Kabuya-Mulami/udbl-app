@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UDBL - Générateur de Flashcards AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+  <style>
+    /* Effet Flip 3D pour la carte */
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- HEADER -->
+    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Générateur de Flashcards AI 🧠</h1>
+        <p class="text-slate-400 text-xs">Transformez vos notes et cours en fiches de révision interactives.</p>
+      </div>
+      <a href="dashboard.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">← Dashboard</a>
+    </div>
+
+    <!-- ZONE DE GENERATION -->
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+      <h2 class="text-lg font-bold text-white">Collez le texte de votre cours</h2>
+      <textarea id="source-text" rows="5" placeholder="Collez ici un paragraphe, une définition ou un résumé de cours..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-200"></textarea>
+      
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-400 font-medium">Nombre de cartes :</label>
+          <select id="card-count" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 outline-none">
+            <option value="3">3 cartes</option>
+            <option value="5" selected>5 cartes</option>
+            <option value="10">10 cartes</option>
+          </select>
+        </div>
+
+        <button onclick="generateFlashcards()" id="btn-generate" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-5 py-2.5 rounded-xl font-medium transition flex items-center gap-2">
+          ✨ Générer les cartes
+        </button>
+      </div>
+    </div>
+
+    <!-- INTERFACE DE REVISION (FLIP CARD) -->
+    <div id="revision-area" class="hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-semibold text-slate-400" id="card-counter">Carte 1 / 5</span>
+        <span class="text-xs text-slate-500">Cliquez sur la carte pour voir la réponse</span>
+      </div>
+
+      <!-- CONTAINER 3D -->
+      <div class="perspective-1000 w-full h-64 cursor-pointer" onclick="flipCard()">
+        <div id="flashcard-inner" class="relative w-full h-full transform-style-3d transition-transform duration-500 shadow-2xl">
+          
+          <!-- RECTO (QUESTION) -->
+          <div class="absolute w-full h-full bg-slate-800 border-2 border-blue-500/50 rounded-2xl p-6 flex flex-col justify-between items-center text-center backface-hidden">
+            <span class="text-[10px] uppercase font-extrabold tracking-widest text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full">Question</span>
+            <p class="text-lg font-medium text-white px-4" id="question-text">Pensez-vous qu'un système LMD permet la compensation des crédits ?</p>
+            <span class="text-xs text-slate-500">🔄 Cliquer pour retourner</span>
+          </div>
+
+          <!-- VERSO (REPONSE) -->
+          <div class="absolute w-full h-full bg-slate-800 border-2 border-emerald-500/50 rounded-2xl p-6 flex flex-col justify-between items-center text-center backface-hidden rotate-y-180">
+            <span class="text-[10px] uppercase font-extrabold tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">Réponse / Explication</span>
+            <p class="text-base text-slate-200 px-4" id="answer-text">Oui, dans certaines conditions définies par la faculté, les notes au-dessus de 10 compensent les matières de la même UE.</p>
+            <span class="text-xs text-slate-500">🔄 Cliquer pour retourner</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CONTROLES SUIVANT / PRECEDENT -->
+      <div class="flex justify-between items-center">
+        <button onclick="prevCard()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">← Précédent</button>
+        <button onclick="nextCard()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-xs font-semibold">Suivant →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="flashcards.js"></script>
+</body>
+</html>

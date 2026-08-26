@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UDBL - Partage de Fichiers & Syllabus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- HEADER -->
+    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Espace Documents & Syllabus</h1>
+        <p class="text-slate-400 text-xs">Partagez et téléchargez des cours, épreuves et travaux (Tous formats acceptés).</p>
+      </div>
+      <a href="dashboard.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">← Dashboard</a>
+    </div>
+
+    <!-- ZONE D'UPLOAD DYNAMIQUE MULTI-FORMATS -->
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+      <h2 class="text-lg font-bold text-white">Ajouter un document</h2>
+      
+      <form id="upload-form" onsubmit="handleFileUpload(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Titre de la ressource</label>
+          <input type="text" id="file-title" required placeholder="Ex: TP1 Programmation Web / Syllabus Droit Privé" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Fichier (PDF, Word, PowerPoint, ZIP, Images, Video...)</label>
+          <input type="file" id="file-input" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 bg-slate-900 border border-slate-700 rounded-xl p-1">
+        </div>
+
+        <button type="submit" id="btn-upload" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-2">
+          <span>📤 Publier la ressource</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- LISTE DES FICHIERS DISPONIBLES -->
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+      <h2 class="text-lg font-bold text-white">Ressources disponibles</h2>
+      
+      <div id="files-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Généré dynamiquement -->
+      </div>
+    </div>
+
+  </div>
+
+  <script src="storage-manager.js"></script>
+</body>
+</html>

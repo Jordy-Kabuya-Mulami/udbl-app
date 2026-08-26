@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UDBL Student Hub - Connexion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-200" id="app-body">
+
+  <div class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
+    
+    <!-- CONTROLES DU HAUT: LANGUE ET THEME -->
+    <div class="flex justify-between items-center mb-6">
+      <!-- Selecteur de Langue (10 langues) -->
+      <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-700 text-xs text-slate-200 border border-slate-600 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="sw">🇨🇩 Swahili</option>
+        <option value="ln">🇨🇩 Lingala</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="pt">🇵🇹 Português</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="zh">🇨🇳 中文 (Mandarin)</option>
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="la">🏛️ Latina</option>
+      </select>
+
+      <!-- Toggle Mode Sombre / Clair -->
+      <button onclick="toggleTheme()" class="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-slate-300 transition" id="theme-btn">
+        🌙
+      </button>
+    </div>
+
+    <!-- EN-TÊTE DE LA PAGE -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-blue-500">UDBL Student Hub</h1>
+      <p class="text-slate-400 text-sm mt-1" id="i18n-subtitle">Accédez à vos cours et votre espace étudiant</p>
+    </div>
+
+    <!-- ONGLETS : CONNEXION / INSCRIPTION -->
+    <div class="flex border-b border-slate-700 mb-6">
+      <button id="tab-login" onclick="switchTab('login')" class="w-1/2 py-2 font-medium border-b-2 border-blue-500 text-blue-500 text-sm" data-i18n="tab_login">Connexion</button>
+      <button id="tab-register" onclick="switchTab('register')" class="w-1/2 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm" data-i18n="tab_register">Inscription</button>
+    </div>
+
+    <!-- FORMULAIRE DE CONNEXION -->
+    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_email">Adresse Email</label>
+        <input type="email" id="login-email" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500" placeholder="etudiant@udbl.ac.cd">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_password">Mot de passe</label>
+        <input type="password" id="login-password" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-lg shadow-blue-500/20" data-i18n="btn_login">Se Connecter</button>
+    </form>
+
+    <!-- FORMULAIRE D'INSCRIPTION -->
+    <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_fullname">Nom complet</label>
+        <input type="text" id="reg-name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jean Kabamba">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_email">Adresse Email</label>
+        <input type="email" id="reg-email" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="etudiant@udbl.ac.cd">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_password">Mot de passe</label>
+        <input type="password" id="reg-password" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+      </div>
+      
+      <!-- NIVEAU D'ÉTUDES (PROMOTION) -->
+      <div>
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_level">Niveau / Promotion</label>
+        <select id="reg-level" onchange="checkLevelRequirement(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="L1">Licence 1 (L1 - Tronc commun)</option>
+          <option value="L2">Licence 2 (L2 - Tronc commun)</option>
+          <option value="L3">Licence 3 (L3)</option>
+          <option value="M1">Master 1 (M1)</option>
+          <option value="M2">Master 2 (M2)</option>
+        </select>
+      </div>
+
+      <!-- FILIÈRE (Dynamic: Désactivé en L1/L2) -->
+      <div id="filiere-box" class="hidden">
+        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1" data-i18n="label_filiere">Filière d'études</label>
+        <select id="reg-filiere" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- Chargé dynamiquement depuis Supabase -->
+        </select>
+      </div>
+
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-lg shadow-blue-500/20" data-i18n="btn_register">Créer mon compte</button>
+    </form>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

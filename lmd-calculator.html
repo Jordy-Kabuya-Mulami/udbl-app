@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UDBL - Calculateur LMD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- HEADER -->
+    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Calculateur & Simulateur LMD</h1>
+        <p class="text-slate-400 text-xs">Calculez votre moyenne semestrielle selon le système d'Unité d'Enseignement (UE).</p>
+      </div>
+      <a href="dashboard.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">← Retour au Dashboard</a>
+    </div>
+
+    <!-- CARTE DE RÉSULTAT GLOBAL -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl">
+        <span class="text-slate-400 text-xs font-semibold uppercase">Moyenne Générale</span>
+        <div class="text-3xl font-extrabold text-blue-400 mt-1" id="res-moyenne">0.00 / 20</div>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl">
+        <span class="text-slate-400 text-xs font-semibold uppercase">Crédits Validés</span>
+        <div class="text-3xl font-extrabold text-emerald-400 mt-1" id="res-credits">0 / 30</div>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl">
+        <span class="text-slate-400 text-xs font-semibold uppercase">Mention Provisoire</span>
+        <div class="text-xl font-bold text-amber-400 mt-2" id="res-mention">En attente</div>
+      </div>
+    </div>
+
+    <!-- TABLEAU DES MATIÈRES -->
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-bold text-white">Vos Matières / UE</h2>
+        <button onclick="addSubjectRow()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-xl transition font-medium">+ Ajouter une matière</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-900/50 text-xs uppercase text-slate-400 border-b border-slate-700">
+            <tr>
+              <th class="p-3">Matière / Cours</th>
+              <th class="p-3">Crédits (ECTS)</th>
+              <th class="p-3">Note CC (/20)</th>
+              <th class="p-3">Note Examen (/20)</th>
+              <th class="p-3">Moyenne UE</th>
+              <th class="p-3 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="subjects-container" class="divide-y divide-slate-700/50">
+            <!-- Les lignes de cours s'ajoutent dynamiquement ici -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="lmd-calculator.js"></script>
+</body>
+</html>
