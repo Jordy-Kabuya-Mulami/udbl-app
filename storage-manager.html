@@ -3,56 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UDBL - Partage de Fichiers & Syllabus</title>
+  <title>UDBL Hub - Drive de Cours</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6 font-sans">
 
-  <div class="max-w-4xl mx-auto space-y-6">
+  <div class="max-w-5xl mx-auto space-y-6">
     
     <!-- HEADER -->
-    <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
       <div>
-        <h1 class="text-2xl font-bold text-white">Espace Documents & Syllabus</h1>
-        <p class="text-slate-400 text-xs">Partagez et téléchargez des cours, épreuves et travaux (Tous formats acceptés).</p>
+        <h1 class="text-xl font-bold text-white flex items-center gap-2">
+          📁 Drive de Cours UDBL
+        </h1>
+        <p class="text-xs text-slate-400 mt-0.5">Partage et téléchargement de syllabus, TP et résumés.</p>
       </div>
-      <a href="dashboard.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">← Dashboard</a>
+      <a href="dashboard.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold">
+        ← Dashboard
+      </a>
     </div>
 
-    <!-- ZONE D'UPLOAD DYNAMIQUE MULTI-FORMATS -->
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-      <h2 class="text-lg font-bold text-white">Ajouter un document</h2>
+    <!-- ZONE D'UPLOAD -->
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
+      <h2 class="text-sm font-bold text-white">Partager une ressource</h2>
       
-      <form id="upload-form" onsubmit="handleFileUpload(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Titre de la ressource</label>
-          <input type="text" id="file-title" required placeholder="Ex: TP1 Programmation Web / Syllabus Droit Privé" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
+      <form onsubmit="uploaderFichier(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="text" id="fichier-titre" required placeholder="Titre du document (ex: TP Algorithmique)" class="bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white outline-none focus:border-blue-500">
+        
+        <input type="file" id="fichier-input" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
 
-        <div>
-          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Fichier (PDF, Word, PowerPoint, ZIP, Images, Video...)</label>
-          <input type="file" id="file-input" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 bg-slate-900 border border-slate-700 rounded-xl p-1">
-        </div>
-
-        <button type="submit" id="btn-upload" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-2">
-          <span>📤 Publier la ressource</span>
+        <button type="submit" id="btn-upload" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl transition">
+          📤 Uploader le document
         </button>
       </form>
     </div>
 
-    <!-- LISTE DES FICHIERS DISPONIBLES -->
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-      <h2 class="text-lg font-bold text-white">Ressources disponibles</h2>
-      
-      <div id="files-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Généré dynamiquement -->
+    <!-- BARRE DE FILTRES DYNAMIQUES -->
+    <div class="bg-slate-800/60 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-400 font-medium">Affichage des cours pour :</span>
+        <span id="label-contexte-user" class="text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">Mon profil</span>
+      </div>
+
+      <div class="flex flex-wrap gap-2 w-full md:w-auto">
+        <!-- Filtre Promotion -->
+        <select id="filtre-promo" onchange="appliquerFiltres()" class="bg-slate-900 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-200 outline-none">
+          <option value="TOUS">Toutes les promotions</option>
+          <option value="L1">L1 (Tronc commun)</option>
+          <option value="L2">L2 (Tronc commun)</option>
+          <option value="L3">L3</option>
+          <option value="L4">L4 (Master)</option>
+        </select>
+
+        <!-- Filtre Spécialité -->
+        <select id="filtre-filiere" onchange="appliquerFiltres()" class="bg-slate-900 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-200 outline-none">
+          <option value="TOUTES">Toutes les spécialités</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- LISTE DES FICHIERS -->
+    <div class="space-y-3">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Documents disponibles</h3>
+      <div id="liste-fichiers" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <p class="text-xs text-slate-500 col-span-2">Chargement des fichiers...</p>
       </div>
     </div>
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="storage-manager.js"></script>
 </body>
 </html>

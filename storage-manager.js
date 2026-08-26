@@ -1,129 +1,186 @@
-const SUPABASE_URL = "https://zxkvodughaissxbkslac.supabase.co/rest/v1/";
-const SUPABASE_ANON_KEY = "sb_publishable_oUMkJw7_dNN-TPyQe5YDwA_N43TJXr5";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// CONFIGURATION SUPABASE
+const SUPABASE_URL = "https://zxkvodughaissxbkslac.supabase.co";
+const SUPABASE_ANON_KEY = "VOTRE_CLE_ANON_PUBLIC_ICI"; // ⚠️ Remplacez par votre clé anon public
 
-document.addEventListener("DOMContentLoaded", fetchFiles);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Fonction pour déterminer l'icône selon l'extension du fichier
-function getFileIcon(filename) {
-  const ext = filename.split('.').pop().toLowerCase();
-  switch (ext) {
-    case 'pdf': return '📄';
-    case 'doc': case 'docx': return '📝';
-    case 'ppt': case 'pptx': return '📊';
-    case 'xls': case 'xlsx': return '📈';
-    case 'zip': case 'rar': case '7z': return '📦';
-    case 'png': case 'jpg': case 'jpeg': case 'webp': return '🖼️';
-    case 'mp4': case 'mkv': case 'avi': return '🎥';
-    case 'mp3': case 'wav': return '🎵';
-    default: return '📁';
+let utilisateurConnecte = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  verifierSession();
+  await chargerOptionsFilieres();
+  initialiserFiltresProfil();
+  chargerFichiers();
+});
+
+// 1. Vérification session locale
+function verifierSession() {
+  const sessionData = localStorage.getItem("udbl_user");
+  if (!sessionData) {
+    window.location.href = "index.html";
+    return;
   }
+  utilisateurConnecte = JSON.parse(sessionData);
 }
 
-// UPLOAD VERS SUPABASE STORAGE & ENREGISTREMENT SQL
-async function handleFileUpload(e) {
+// 2. Charger la liste des spécialités UDBL dans le menu déroulant
+async function chargerOptionsFilieres() {
+  const selectFiliere = document.getElementById("filtre-filiere");
+  
+  const { data: filieres, error } = await supabase
+    .from("filieres")
+    .select("id, nom")
+    .order("nom", { ascending: true });
+
+  if (error) {
+    console.error("Erreur chargement filières :", error.message);
+    return;
+  }
+
+  filieres.forEach((f) => {
+    const option = document.createElement("option");
+    option.value = f.id;
+    option.textContent = f.nom;
+    selectFiliere.appendChild(option);
+  });
+}
+
+// 3. Appliquer automatiquement le profil de l'étudiant comme filtres par défaut
+function initialiserFiltresProfil() {
+  const selectPromo = document.getElementById("filtre-promo");
+  const selectFiliere = document.getElementById("filtre-filiere");
+
+  if (utilisateurConnecte.promotion) {
+    selectPromo.value = utilisateurConnecte.promotion;
+  }
+
+  // Pour L1 et L2, pas de spécialité
+  if (utilisateurConnecte.promotion === "L1" || utilisateurConnecte.promotion === "L2") {
+    selectFiliere.value = "TOUTES";
+  } else if (utilisateurConnecte.filiere_id) {
+    selectFiliere.value = utilisateurConnecte.filiere_id;
+  }
+
+  const promoTexte = utilisateurConnecte.promotion;
+  document.getElementById("label-contexte-user").innerText = `Filtre actif : ${promoTexte}`;
+}
+
+// 4. Charger et filtrer les fichiers depuis Supabase
+async function chargerFichiers() {
+  const container = document.getElementById("liste-fichiers");
+  container.innerHTML = `<p class="text-xs text-slate-500 col-span-2">Chargement des documents en cours...</p>`;
+
+  const promoChoisie = document.getElementById("filtre-promo").value;
+  const filiereChoisie = document.getElementById("filtre-filiere").value;
+
+  // Requête de base sur Supabase
+  let query = supabase.from("ressources_cours").select("*").order("created_at", { ascending: false });
+
+  // Application dynamique des filtres
+  if (promoChoisie !== "TOUS") {
+    query = query.eq("niveau", promoChoisie);
+  }
+
+  if (filiereChoisie !== "TOUTES" && promoChoisie !== "L1" && promoChoisie !== "L2") {
+    query = query.eq("filiere_id", filiereChoisie);
+  }
+
+  const { data: ressources, error } = await query;
+
+  if (error) {
+    container.innerHTML = `<p class="text-xs text-rose-400 col-span-2">Erreur : ${error.message}</p>`;
+    return;
+  }
+
+  if (!ressources || ressources.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-2 bg-slate-800/40 border border-slate-800 rounded-xl p-8 text-center">
+        <p class="text-slate-400 text-xs">Aucun document n'a encore été partagé pour cette sélection.</p>
+      </div>`;
+    return;
+  }
+
+  // Affichage des cartes de cours
+  container.innerHTML = ressources.map(f => `
+    <div class="bg-slate-800 border border-slate-700/80 p-4 rounded-xl flex items-center justify-between hover:border-slate-600 transition">
+      <div class="flex items-center gap-3 overflow-hidden">
+        <div class="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl text-lg font-bold">📄</div>
+        <div class="truncate">
+          <h4 class="text-xs font-bold text-white truncate">${f.titre}</h4>
+          <p class="text-[10px] text-slate-400 mt-0.5">Partagé par <span class="text-slate-300 font-medium">${f.auteur_nom || 'Étudiant'}</span> • Niveau ${f.niveau}</p>
+        </div>
+      </div>
+      <a href="${f.fichier_url}" target="_blank" download class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 text-xs font-medium px-3 py-1.5 rounded-lg transition shrink-0">
+        Télécharger ⬇️
+      </a>
+    </div>
+  `).join("");
+}
+
+function appliquerFiltres() {
+  chargerFichiers();
+}
+
+// 5. Upload d'un fichier avec association automatique du niveau et de la filière
+async function uploaderFichier(e) {
   e.preventDefault();
-  const title = document.getElementById("file-title").value;
-  const fileInput = document.getElementById("file-input");
+
+  const titreInput = document.getElementById("fichier-titre");
+  const fileInput = document.getElementById("fichier-input");
+  const btnUpload = document.getElementById("btn-upload");
+
+  const titre = titreInput.value.trim();
   const file = fileInput.files[0];
-  const btn = document.getElementById("btn-upload");
 
-  if (!file) return;
+  if (!file || !titre) return;
 
-  btn.disabled = true;
-  btn.innerText = "Chargement en cours...";
+  btnUpload.disabled = true;
+  btnUpload.innerText = "Upload en cours...";
 
-  // 1. Génération d'un nom de fichier unique pour éviter les conflits d'écrasement
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-  const filePath = `syllabi/${fileName}`;
+  // Génération d'un nom de fichier unique
+  const filePath = `${Date.now()}_${file.name}`;
 
-  // 2. Upload dans Supabase Storage (Accepte TOUTE extension)
+  // 1. Upload dans le bucket Supabase Storage
   const { data: storageData, error: storageError } = await supabase.storage
-    .from('syllabus-storage')
+    .from("syllabus-storage")
     .upload(filePath, file);
 
   if (storageError) {
-    alert("Erreur lors de l'envoi du fichier: " + storageError.message);
-    btn.disabled = false;
-    btn.innerText = "📤 Publier la ressource";
+    alert("Erreur lors de l'upload du fichier : " + storageError.message);
+    btnUpload.disabled = false;
+    btnUpload.innerText = "📤 Uploader le document";
     return;
   }
 
-  // 3. Récupération de l'URL publique de téléchargement
+  // 2. Récupération de l'URL publique
   const { data: publicUrlData } = supabase.storage
-    .from('syllabus-storage')
+    .from("syllabus-storage")
     .getPublicUrl(filePath);
 
-  const filePublicUrl = publicUrlData.publicUrl;
+  // 3. Enregistrement des métadonnées avec la promotion/filiere de l'étudiant
+  const filiereFinale = (utilisateurConnecte.promotion === "L1" || utilisateurConnecte.promotion === "L2") 
+    ? null 
+    : utilisateurConnecte.filiere_id;
 
-  // 4. Récupération de l'utilisateur connecté
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  // 5. Enregistrement dans la table SQL ressources_cours
-  const { error: dbError } = await supabase
-    .from('ressources_cours')
-    .insert([
-      {
-        titre: title,
-        fichier_url: filePublicUrl,
-        niveau: 'L1', // À lier dynamiquement avec le profil de l'utilisateur
-        auteur_id: session ? session.user.id : null
-      }
-    ]);
+  const { error: dbError } = await supabase.from("ressources_cours").insert([
+    {
+      titre: titre,
+      fichier_url: publicUrlData.publicUrl,
+      niveau: utilisateurConnecte.promotion,
+      filiere_id: filiereFinale,
+      auteur_nom: utilisateurConnecte.nom
+    }
+  ]);
 
-  btn.disabled = false;
-  btn.innerText = "📤 Publier la ressource";
+  btnUpload.disabled = false;
+  btnUpload.innerText = "📤 Uploader le document";
 
   if (dbError) {
-    alert("Erreur BDD: " + dbError.message);
+    alert("Erreur BDD : " + dbError.message);
   } else {
-    alert("Fichier téléversé avec succès !");
-    document.getElementById("upload-form").reset();
-    fetchFiles();
+    alert("Document publié avec succès !");
+    titreInput.value = "";
+    fileInput.value = "";
+    chargerFichiers();
   }
-}
-
-// RÉCUPÉRATION ET AFFICHAGE DES FICHIERS
-async function fetchFiles() {
-  const container = document.getElementById("files-list");
-  container.innerHTML = "<p class='text-xs text-slate-400'>Chargement des ressources...</p>";
-
-  const { data: files, error } = await supabase
-    .from('ressources_cours')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    container.innerHTML = "<p class='text-xs text-red-400'>Erreur de chargement des ressources.</p>";
-    return;
-  }
-
-  if (files.length === 0) {
-    container.innerHTML = "<p class='text-xs text-slate-500'>Aucun document n'a encore été publié.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-  files.forEach(f => {
-    const icon = getFileIcon(f.fichier_url);
-    
-    const card = document.createElement("div");
-    card.className = "bg-slate-900 border border-slate-700/80 p-4 rounded-xl flex justify-between items-center hover:border-slate-600 transition";
-    
-    card.innerHTML = `
-      <div class="flex items-center space-x-3 overflow-hidden">
-        <div class="text-2xl">${icon}</div>
-        <div class="truncate">
-          <h4 class="font-semibold text-sm text-white truncate">${f.titre}</h4>
-          <p class="text-[10px] text-slate-400">${new Date(f.created_at).toLocaleDateString()}</p>
-        </div>
-      </div>
-      <a href="${f.fichier_url}" target="_blank" download class="bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1 font-medium transition shrink-0">
-        ⬇️ Télécharger
-      </a>
-    `;
-
-    container.appendChild(card);
-  });
 }
