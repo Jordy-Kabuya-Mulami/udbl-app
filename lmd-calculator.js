@@ -1,3 +1,6 @@
+const SUPABASE_URL = "https://zxkvodughaissxbkslac.supabase.co/rest/v1/"; // Collez votre URL
+const SUPABASE_ANON_KEY = "sb_publishable_oUMkJw7_dNN-TPyQe5YDwA_N43TJXr5"; // Collez votre clé anon public
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Barème standard LMD : CC (40%) + Examen (60%)
 const WEIGHT_CC = 0.4;
 const WEIGHT_EXAM = 0.6;
